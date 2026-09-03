@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Admin — HostelEats</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <link rel="stylesheet" href="../css/dashboard.css"/>
+  <link rel="stylesheet" href="../css/admin.css"/>
+</head>
+<body class="dashboard-page admin-theme">
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand"><span>🍱</span><span class="brand-text">HostelEats</span><span class="admin-badge">Admin</span></div>
+  <nav class="sidebar-nav">
+    <a href="#" class="nav-item active" data-page="dashboard"><span class="nav-icon">📊</span><span>Dashboard</span></a>
+    <a href="#" class="nav-item" data-page="menu-mgmt"><span class="nav-icon">📋</span><span>Menu Management</span></a>
+    <a href="#" class="nav-item" data-page="bulk-upload"><span class="nav-icon">📤</span><span>Bulk Upload</span></a>
+    <a href="#" class="nav-item" data-page="meal-count"><span class="nav-icon">🔢</span><span>Meal Counts</span></a>
+    <a href="#" class="nav-item" data-page="attendance"><span class="nav-icon">✅</span><span>Attendance</span></a>
+    <a href="#" class="nav-item" data-page="wastage"><span class="nav-icon">♻️</span><span>Wastage Report</span></a>
+    <a href="#" class="nav-item" data-page="billing"><span class="nav-icon">💰</span><span>Billing</span></a>
+    <a href="#" class="nav-item" data-page="feedbacks"><span class="nav-icon">💬</span><span>Feedbacks</span></a>
+    <a href="#" class="nav-item" data-page="students"><span class="nav-icon">👥</span><span>Students</span></a>
+    <a href="/pages/scanner.html" class="nav-item" style="margin-top:8px;border-top:1px solid var(--border);padding-top:12px">
+      <span class="nav-icon">📷</span><span>Mess Scanner</span>
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-info">
+      <div class="user-avatar admin-avatar" id="sidebarAvatar">A</div>
+      <div><div class="user-name" id="sidebarName">Admin</div><div class="user-role">Administrator</div></div>
+    </div>
+    <button class="logout-btn" onclick="logout()">↩ Logout</button>
+  </div>
+</aside>
+
+<main class="main-content">
+  <header class="top-bar">
+    <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+    <div class="page-title" id="pageTitle">Dashboard</div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <button class="btn-export" onclick="exportReport()">📥 Export Excel</button>
+      <div class="date-display" id="currentDate"></div>
+    </div>
+  </header>
+
+  <!-- Dashboard -->
+  <section class="page active" id="page-dashboard">
+    <div class="stats-grid" id="statsGrid"><div class="stat-card">Loading...</div></div>
+    <div class="charts-row">
+      <div class="chart-card"><h3>Today's Meal Distribution</h3><div id="todayMealChart" class="bar-chart"></div></div>
+      <div class="chart-card"><h3>Average Ratings by Meal</h3><div id="ratingChart" class="bar-chart"></div></div>
+    </div>
+  </section>
+
+  <!-- Menu Management -->
+  <section class="page" id="page-menu-mgmt">
+    <div class="page-header">
+      <h2>Menu Management</h2>
+      <div style="display:flex;gap:12px">
+        <button class="btn-secondary" onclick="generateWithAI()" style="width:auto;padding:10px 20px;margin:0;border-color:var(--accent);color:var(--accent)">✨ AI Generate</button>
+        <button class="btn-primary" onclick="openMenuModal()" style="width:auto;padding:10px 20px;margin:0">+ Add Menu</button>
+      </div>
+    </div>
+    <div class="filter-row" style="margin-bottom:16px">
+      <input type="date" id="menuFilterStart"/><span>to</span>
+      <input type="date" id="menuFilterEnd"/>
+      <button class="btn-secondary" onclick="loadMenuList()">Filter</button>
+    </div>
+    <div id="menuTable"><div class="loading-state">Loading menus...</div></div>
+  </section>
+
+  <!-- Bulk Upload -->
+  <section class="page" id="page-bulk-upload">
+    <div class="page-header"><h2>Bulk Menu Upload</h2></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <div style="background:var(--dark-2);border:1px solid var(--border);border-radius:14px;padding:24px">
+        <h3 style="font-family:var(--font-head);font-weight:700;margin-bottom:12px">📤 Upload CSV / Excel</h3>
+        <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px;line-height:1.6">Upload a CSV or XLSX file. Each row = one date. Veg and non-veg columns for each meal.</p>
+        <div class="form-group">
+          <label>Select File (.csv or .xlsx)</label>
+          <input type="file" id="menuUploadFile" accept=".csv,.xlsx,.xls" style="background:var(--dark-3);border:1px solid var(--border);color:var(--text);padding:10px;border-radius:8px;width:100%;font-size:13px"/>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:16px">
+          <button class="btn-primary" onclick="uploadMenuFile()" style="width:auto;padding:10px 18px;margin:0"><span>📤 Upload</span></button>
+          <button class="btn-secondary" onclick="downloadTemplate()">⬇ Template</button>
+        </div>
+        <div id="uploadResult" style="margin-top:16px"></div>
+      </div>
+      <div style="background:var(--dark-2);border:1px solid var(--border);border-radius:14px;padding:24px">
+        <h3 style="font-family:var(--font-head);font-weight:700;margin-bottom:12px">📋 Column Guide</h3>
+        <div style="display:flex;flex-direction:column;gap:6px;font-size:12px">
+          <div style="display:flex;gap:10px;padding:7px;background:var(--dark-3);border-radius:6px"><code style="color:var(--accent);min-width:180px">date</code><span style="color:var(--text-muted)">YYYY-MM-DD (required)</span></div>
+          <div style="display:flex;gap:10px;padding:7px;background:var(--dark-3);border-radius:6px"><code style="color:var(--accent);min-width:180px">breakfast_veg</code><span style="color:var(--text-muted)">Veg breakfast items</span></div>
+          <div style="display:flex;gap:10px;padding:7px;background:var(--dark-3);border-radius:6px"><code style="color:var(--accent);min-width:180px">breakfast_nonveg</code><span style="color:var(--text-muted)">Non-veg breakfast</span></div>
+          <div style="display:flex;gap:10px;padding:7px;background:var(--dark-3);border-radius:6px"><code style="color:var(--accent);min-width:180px">breakfast_time</code><span style="color:var(--text-muted)">7:00 AM - 9:00 AM</span></div>
+          <div style="display:flex;gap:10px;padding:7px;background:var(--dark-3);border-radius:6px"><code style="color:var(--accent);min-width:180px">lunch_veg / lunch_nonveg</code><span style="color:var(--text-muted)">Lunch items + lunch_time</span></div>
+          <div style="display:flex;gap:10px;padding:7px;background:var(--dark-3);border-radius:6px"><code style="color:var(--accent);min-width:180px">snacks_veg / snacks_nonveg</code><span style="color:var(--text-muted)">Snack items + snacks_time</span></div>
+          <div style="display:flex;gap:10px;padding:7px;background:var(--dark-3);border-radius:6px"><code style="color:var(--accent);min-width:180px">dinner_veg / dinner_nonveg</code><span style="color:var(--text-muted)">Dinner items + dinner_time</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Meal Count -->
+  <section class="page" id="page-meal-count">
+    <div class="page-header"><h2>Meal Count Dashboard</h2>
+      <div class="filter-row"><input type="date" id="mealCountDate"/><button class="btn-secondary" onclick="loadMealCounts()">View</button></div>
+    </div>
+    <div id="mealCountView"><div class="loading-state">Select a date to view counts</div></div>
+  </section>
+
+  <!-- Attendance -->
+  <section class="page" id="page-attendance">
+    <div class="page-header"><h2>Attendance Tracking</h2>
+      <div class="filter-row"><input type="date" id="attendanceDate"/><button class="btn-secondary" onclick="loadAttendance()">View</button></div>
+    </div>
+    <div id="attendanceView"><div class="loading-state">Select a date to view attendance</div></div>
+  </section>
+
+  <!-- Wastage Report -->
+  <section class="page" id="page-wastage">
+    <div class="page-header"><h2>♻️ Wastage Report</h2>
+      <div class="filter-row">
+        <select id="wastageWeeks" onchange="loadWastage()">
+          <option value="2">Last 2 weeks</option>
+          <option value="4" selected>Last 4 weeks</option>
+          <option value="8">Last 8 weeks</option>
+          <option value="12">Last 12 weeks</option>
+        </select>
+        <button class="btn-secondary" onclick="loadWastage()">Refresh</button>
+      </div>
+    </div>
+    <div id="wastageView"><div class="loading-state">Loading wastage data...</div></div>
+  </section>
+
+  <!-- Billing -->
+  <section class="page" id="page-billing">
+    <div class="page-header"><h2>💰 Monthly Mess Billing</h2></div>
+    <!-- Price reference banner -->
+    <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap">
+      <div style="flex:1;min-width:100px;background:var(--dark-2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:10px">
+        <span style="font-size:22px">🌅</span><div><div style="font-size:11px;color:var(--text-muted)">Breakfast</div><div style="font-weight:800;font-family:var(--font-head);color:var(--accent)">₹60</div></div>
+      </div>
+      <div style="flex:1;min-width:100px;background:var(--dark-2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:10px">
+        <span style="font-size:22px">☀️</span><div><div style="font-size:11px;color:var(--text-muted)">Lunch</div><div style="font-weight:800;font-family:var(--font-head);color:var(--accent)">₹60</div></div>
+      </div>
+      <div style="flex:1;min-width:100px;background:var(--dark-2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:10px">
+        <span style="font-size:22px">🍪</span><div><div style="font-size:11px;color:var(--text-muted)">Snacks</div><div style="font-weight:800;font-family:var(--font-head);color:var(--accent)">₹50</div></div>
+      </div>
+      <div style="flex:1;min-width:100px;background:var(--dark-2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:10px">
+        <span style="font-size:22px">🌙</span><div><div style="font-size:11px;color:var(--text-muted)">Dinner</div><div style="font-weight:800;font-family:var(--font-head);color:var(--accent)">₹70</div></div>
+      </div>
+    </div>
+    <!-- Controls -->
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:20px;padding:16px 20px;background:var(--dark-2);border:1px solid var(--border);border-radius:var(--radius)">
+      <div style="display:flex;align-items:center;gap:10px">
+        <label style="font-size:13px;color:var(--text-muted)">View month:</label>
+        <select id="billingMonth" onchange="loadBilling()" style="background:var(--dark-3);border:1px solid var(--border);color:var(--text);padding:9px 14px;border-radius:8px;font-size:13px;font-family:var(--font-body)"></select>
+        <button class="btn-secondary" onclick="loadBilling()">View Bills</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <label style="font-size:13px;color:var(--text-muted)">Generate for:</label>
+        <select id="generateBillingMonth" style="background:var(--dark-3);border:1px solid var(--border);color:var(--text);padding:9px 14px;border-radius:8px;font-size:13px;font-family:var(--font-body)"></select>
+        <button class="btn-primary" onclick="generateBills()" style="width:auto;padding:10px 18px;margin:0"><span>⚡ Generate Bills</span></button>
+      </div>
+    </div>
+    <div id="billingTable"><div class="loading-state">Select a month and click View, or click Generate Bills first.</div></div>
+  </section>
+
+  <!-- Feedbacks -->
+  <section class="page" id="page-feedbacks">
+    <div class="page-header"><h2>Student Feedbacks</h2>
+      <div class="filter-row">
+        <select id="feedbackFilterMeal">
+          <option value="">All Meals</option>
+          <option value="breakfast">🌅 Breakfast</option>
+          <option value="lunch">☀️ Lunch</option>
+          <option value="snacks">🍪 Snacks</option>
+          <option value="dinner">🌙 Dinner</option>
+        </select>
+        <input type="date" id="feedbackFilterDate"/>
+        <button class="btn-secondary" onclick="loadFeedbacks()">Filter</button>
+      </div>
+    </div>
+    <div class="feedback-summary-cards" id="feedbackSummary"></div>
+    <div id="feedbacksTable"><div class="loading-state">Loading feedbacks...</div></div>
+  </section>
+
+  <!-- Students -->
+  <section class="page" id="page-students">
+    <div class="page-header"><h2>Registered Students</h2></div>
+    <div id="studentsTable"><div class="loading-state">Loading students...</div></div>
+  </section>
+</main>
+
+<!-- ═══ MENU MODAL — ALL INPUTS WRITTEN AS PLAIN HTML (no template literals) ═══ -->
+<div class="modal-overlay hidden" id="menuModal">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-header">
+      <h3 id="menuModalTitle">Add Menu</h3>
+      <button onclick="closeMenuModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="menuEditId"/>
+
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="menuDate" required/>
+      </div>
+
+      <!-- BREAKFAST -->
+      <div class="meal-input-group">
+        <h4>🌅 Breakfast &nbsp;<span style="font-size:11px;color:var(--text-muted);font-weight:400">7:00 AM – 9:00 AM</span></h4>
+        <div class="form-row">
+          <div class="form-group">
+            <label>🥦 Veg Items</label>
+            <input type="text" id="breakfastVeg" placeholder="Idli, Sambar, Chutney, Upma"/>
+          </div>
+          <div class="form-group">
+            <label>🍗 Non-Veg Items</label>
+            <input type="text" id="breakfastNonVeg" placeholder="Egg Bhurji, Omelette"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Serving Time (optional)</label>
+          <input type="text" id="breakfastTime" placeholder="7:00 AM - 9:00 AM"/>
+        </div>
+      </div>
+
+      <!-- LUNCH -->
+      <div class="meal-input-group">
+        <h4>☀️ Lunch &nbsp;<span style="font-size:11px;color:var(--text-muted);font-weight:400">12:00 PM – 2:00 PM</span></h4>
+        <div class="form-row">
+          <div class="form-group">
+            <label>🥦 Veg Items</label>
+            <input type="text" id="lunchVeg" placeholder="Rice, Dal, Sabzi, Roti, Salad"/>
+          </div>
+          <div class="form-group">
+            <label>🍗 Non-Veg Items</label>
+            <input type="text" id="lunchNonVeg" placeholder="Chicken Curry, Fish Fry"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Serving Time (optional)</label>
+          <input type="text" id="lunchTime" placeholder="12:00 PM - 2:00 PM"/>
+        </div>
+      </div>
+
+      <!-- SNACKS -->
+      <div class="meal-input-group">
+        <h4>🍪 Snacks &nbsp;<span style="font-size:11px;color:var(--text-muted);font-weight:400">4:00 PM – 5:00 PM</span></h4>
+        <div class="form-row">
+          <div class="form-group">
+            <label>🥦 Veg Items</label>
+            <input type="text" id="snacksVeg" placeholder="Biscuits, Chai, Vada, Bhajji"/>
+          </div>
+          <div class="form-group">
+            <label>🍗 Non-Veg Items</label>
+            <input type="text" id="snacksNonVeg" placeholder="Egg Sandwich, Samosa"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Serving Time (optional)</label>
+          <input type="text" id="snacksTime" placeholder="4:00 PM - 5:00 PM"/>
+        </div>
+      </div>
+
+      <!-- DINNER -->
+      <div class="meal-input-group">
+        <h4>🌙 Dinner &nbsp;<span style="font-size:11px;color:var(--text-muted);font-weight:400">7:00 PM – 9:00 PM</span></h4>
+        <div class="form-row">
+          <div class="form-group">
+            <label>🥦 Veg Items</label>
+            <input type="text" id="dinnerVeg" placeholder="Roti, Paneer, Dal, Rice, Raita"/>
+          </div>
+          <div class="form-group">
+            <label>🍗 Non-Veg Items</label>
+            <input type="text" id="dinnerNonVeg" placeholder="Mutton Curry, Egg Curry"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Serving Time (optional)</label>
+          <input type="text" id="dinnerTime" placeholder="7:00 PM - 9:00 PM"/>
+        </div>
+      </div>
+
+      <!-- Email notification toggle -->
+      <div class="notify-toggle-row">
+        <label class="toggle-label">
+          <input type="checkbox" id="sendNotification"/>
+          <span class="toggle-switch"></span>
+          <span>📧 Send email notification to all students when saved</span>
+        </label>
+      </div>
+
+      <div id="menuModalAlert" class="alert hidden"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeMenuModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveMenu()" style="width:auto;padding:12px 28px;margin:0"><span>💾 Save Menu</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- Bill Detail Modal -->
+<div class="modal-overlay hidden" id="billDetailModal">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header"><h3>🧾 Bill Details</h3><button onclick="closeBillModal()">✕</button></div>
+    <div class="modal-body" id="billDetailBody"></div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeBillModal()">Close</button>
+      <button class="btn-primary" id="billPdfBtn" style="width:auto;padding:10px 20px;margin:0"><span>📄 Download PDF</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- PhonePe Payment Modal -->
+<div class="modal-overlay hidden" id="paymentModal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header"><h3>💳 Collect Payment via PhonePe</h3><button onclick="closePaymentModal()">✕</button></div>
+    <div class="modal-body" style="text-align:center">
+      <div style="background:#000;border-radius:16px;padding:24px;margin-bottom:16px">
+        <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:6px">
+          <div style="background:#5f259f;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;font-weight:900">₹</div>
+          <span style="font-size:22px;font-weight:800;color:#fff;font-family:var(--font-head)">PhonePe</span>
+        </div>
+        <p style="color:#a78bfa;font-weight:700;font-size:12px;letter-spacing:1px;margin-bottom:12px">ACCEPTED HERE · Scan &amp; Pay</p>
+        <div style="background:#fff;border-radius:8px;padding:8px;display:inline-block;margin-bottom:12px">
+          <div id="paymentQRBox" style="width:200px;height:200px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#333">
+            QR code will appear here.<br/>Add phonepe-qr.png to frontend/ folder.
+          </div>
+        </div>
+        <p style="color:#fff;font-weight:800;font-size:14px;letter-spacing:2px">AKANA TEJA</p>
+      </div>
+      <div style="background:var(--dark-3);border-radius:10px;padding:16px">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">Amount to Collect</div>
+        <div style="font-size:40px;font-family:var(--font-head);font-weight:800;color:var(--accent)" id="paymentAmount">₹0</div>
+        <div style="font-size:13px;color:var(--text-muted);margin-top:4px" id="paymentStudent"></div>
+      </div>
+      <p style="font-size:11px;color:var(--text-muted);margin-top:12px">After student pays, click the button below to mark as paid.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closePaymentModal()">Cancel</button>
+      <button id="confirmPayBtn" class="btn-primary" style="width:auto;padding:10px 20px;margin:0"><span>✅ Mark as Paid</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- Export Modal -->
+<div class="modal-overlay hidden" id="exportModal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header"><h3>📥 Export Excel Report</h3><button onclick="closeExportModal()">✕</button></div>
+    <div class="modal-body">
+      <p style="color:var(--text-muted);font-size:13px;margin-bottom:16px">Exports 3 sheets: all bookings, meal counts, and feedback.</p>
+      <div class="form-group"><label>Start Date</label><input type="date" id="exportStart"/></div>
+      <div class="form-group"><label>End Date</label><input type="date" id="exportEnd"/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeExportModal()">Cancel</button>
+      <button class="btn-primary" onclick="downloadExport()" style="width:auto;padding:10px 20px;margin:0"><span>📥 Download</span></button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/admin.js"></script>
+</body>
+</html>

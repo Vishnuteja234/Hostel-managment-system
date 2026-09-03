@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mess Scanner — HostelEats</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <link rel="stylesheet" href="../css/style.css" />
+  <style>
+    body { background: #0a0c10; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 24px 16px; }
+
+    .scanner-header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .scanner-header .brand { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 8px; }
+    .scanner-header h1 { font-family: var(--font-head); font-size: 26px; font-weight: 800; }
+    .scanner-header p { color: var(--text-muted); font-size: 14px; }
+
+    .scanner-card {
+      width: 100%;
+      max-width: 460px;
+      background: var(--dark-2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+
+    .scanner-top {
+      padding: 20px;
+      background: var(--dark-3);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .meal-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--dark-2);
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .meal-badge .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      animation: pulse 1.5s ease infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+
+    .today-info { font-size: 12px; color: var(--text-muted); text-align: right; }
+
+    #scanner-box {
+      width: 100%;
+      background: #000;
+      position: relative;
+      min-height: 300px;
+    }
+    #reader { width: 100% !important; }
+    #reader video { width: 100% !important; object-fit: cover; }
+    #reader__scan_region { border: none !important; }
+
+    .scan-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .scan-frame {
+      width: 200px; height: 200px;
+      border: 3px solid var(--primary);
+      border-radius: 16px;
+      box-shadow: 0 0 0 9999px rgba(0,0,0,0.4);
+      position: relative;
+    }
+    .scan-frame::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--primary);
+      animation: scanLine 2s linear infinite;
+      border-radius: 2px;
+    }
+    @keyframes scanLine { 0%{top:0;} 100%{top:calc(100% - 3px);} }
+    .scan-corner {
+      position: absolute;
+      width: 20px; height: 20px;
+      border-color: var(--accent);
+      border-style: solid;
+    }
+    .scan-corner.tl { top: -3px; left: -3px; border-width: 3px 0 0 3px; border-radius: 4px 0 0 0; }
+    .scan-corner.tr { top: -3px; right: -3px; border-width: 3px 3px 0 0; border-radius: 0 4px 0 0; }
+    .scan-corner.bl { bottom: -3px; left: -3px; border-width: 0 0 3px 3px; border-radius: 0 0 0 4px; }
+    .scan-corner.br { bottom: -3px; right: -3px; border-width: 0 3px 3px 0; border-radius: 0 0 4px 0; }
+
+    .scanner-controls {
+      padding: 16px 20px;
+      display: flex;
+      gap: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .scanner-controls button {
+      flex: 1;
+      padding: 11px;
+      border-radius: 10px;
+      font-family: var(--font-head);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: 0.2s;
+    }
+    .btn-scan-start { background: var(--primary); color: white; }
+    .btn-scan-start:hover { background: var(--primary-dark); }
+    .btn-scan-stop { background: transparent; color: var(--error); border-color: var(--error); }
+    .btn-scan-stop:hover { background: rgba(248,113,113,0.1); }
+    .btn-manual { background: transparent; color: var(--text-muted); border-color: var(--border); }
+    .btn-manual:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* Result display */
+    .scan-result {
+      padding: 20px;
+      display: none;
+      animation: slideUp 0.3s ease;
+    }
+    .scan-result.show { display: block; }
+    @keyframes slideUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+
+    .result-card {
+      border-radius: 14px;
+      padding: 20px;
+      border: 2px solid;
+    }
+    .result-card.success { background: rgba(74,222,128,0.08); border-color: var(--success); }
+    .result-card.error   { background: rgba(248,113,113,0.08); border-color: var(--error); }
+    .result-card.warn    { background: rgba(251,191,36,0.08);  border-color: var(--warning); }
+
+    .result-icon { font-size: 36px; margin-bottom: 10px; }
+    .result-title { font-family: var(--font-head); font-weight: 800; font-size: 18px; margin-bottom: 14px; }
+    .result-title.success { color: var(--success); }
+    .result-title.error   { color: var(--error); }
+    .result-title.warn    { color: var(--warning); }
+
+    .student-info { display: flex; flex-direction: column; gap: 8px; }
+    .info-row { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+    .info-label { color: var(--text-muted); font-size: 12px; width: 80px; flex-shrink: 0; }
+    .info-value { font-weight: 600; }
+
+    .food-pref-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .food-pref-badge.veg { background: rgba(74,222,128,0.15); color: var(--success); }
+    .food-pref-badge.nonveg { background: rgba(248,113,113,0.15); color: var(--error); }
+
+    .result-time { font-size: 12px; color: var(--text-muted); margin-top: 12px; text-align: right; }
+
+    /* Manual input */
+    .manual-input-section {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+      display: none;
+    }
+    .manual-input-section.show { display: block; }
+    .manual-input-section label { font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; display: block; margin-bottom: 6px; }
+    .manual-row { display: flex; gap: 8px; }
+    .manual-row input { flex: 1; background: var(--dark-3); border: 1px solid var(--border); color: var(--text); padding: 10px 12px; border-radius: 8px; font-size: 13px; outline: none; font-family: var(--font-body); }
+    .manual-row input:focus { border-color: var(--primary); }
+
+    /* Stats bar */
+    .stats-bar {
+      padding: 14px 20px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 0;
+    }
+    .stat-item { flex: 1; text-align: center; }
+    .stat-item:not(:last-child) { border-right: 1px solid var(--border); }
+    .stat-num { font-family: var(--font-head); font-size: 20px; font-weight: 800; }
+    .stat-num.green { color: var(--success); }
+    .stat-num.red { color: var(--error); }
+    .stat-num.yellow { color: var(--warning); }
+    .stat-lbl { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+    .back-btn {
+      margin-bottom: 16px;
+      background: var(--dark-2);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .back-btn:hover { border-color: var(--primary); color: var(--primary); }
+  </style>
+</head>
+<body>
+  <div class="scanner-header">
+    <div class="brand">
+      <span style="font-size:28px">🍱</span>
+      <h1>HostelEats</h1>
+    </div>
+    <p>Mess Entry Scanner — Scan student QR to mark meal consumed</p>
+  </div>
+
+  <button class="back-btn" onclick="window.location.href='/pages/admin.html'">← Back to Dashboard</button>
+
+  <div class="scanner-card">
+    <div class="scanner-top">
+      <div class="meal-badge">
+        <div class="dot"></div>
+        <span id="currentMealLabel">Detecting meal...</span>
+      </div>
+      <div class="today-info">
+        <div id="scannerDate" style="font-weight:600;color:var(--text)"></div>
+        <div id="scannerTime"></div>
+      </div>
+    </div>
+
+    <div id="scanner-box">
+      <div id="reader"></div>
+      <div class="scan-overlay" id="scanOverlay">
+        <div class="scan-frame">
+          <div class="scan-corner tl"></div>
+          <div class="scan-corner tr"></div>
+          <div class="scan-corner bl"></div>
+          <div class="scan-corner br"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="scanner-controls">
+      <button class="btn-scan-start" id="startBtn" onclick="startScanner()">▶ Start Camera</button>
+      <button class="btn-scan-stop" id="stopBtn" onclick="stopScanner()" style="display:none">■ Stop</button>
+      <button class="btn-manual" onclick="toggleManual()">⌨ Manual</button>
+    </div>
+
+    <div class="manual-input-section" id="manualSection">
+      <label>Enter QR Token Manually</label>
+      <div class="manual-row">
+        <input type="text" id="manualToken" placeholder="Paste QR token here..." />
+        <button class="btn-primary" style="width:auto;padding:10px 16px;margin:0;border-radius:8px" onclick="submitManual()">Go</button>
+      </div>
+    </div>
+
+    <div class="scan-result" id="scanResult"></div>
+
+    <div class="stats-bar">
+      <div class="stat-item">
+        <div class="stat-num green" id="statSuccess">0</div>
+        <div class="stat-lbl">Consumed</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num red" id="statFailed">0</div>
+        <div class="stat-lbl">Failed</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num yellow" id="statTotal">0</div>
+        <div class="stat-lbl">Total Scans</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script>
+    // Auth check
+    (function() {
+      const user = requireAuth();
+      if (!user) return;
+      if (user.role !== 'admin') { window.location.href = '/pages/student.html'; }
+    })();
+
+    let html5QrCode = null;
+    let isScanning = false;
+    let scanCooldown = false;
+    let stats = { success: 0, failed: 0, total: 0 };
+
+    // Live clock
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('scannerDate').textContent = now.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' });
+      document.getElementById('scannerTime').textContent = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+      updateCurrentMeal(now);
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    function updateCurrentMeal(now) {
+      const h = now.getHours();
+      let meal = 'No meal time';
+      if (h >= 6 && h < 10) meal = '🌅 Breakfast Time';
+      else if (h >= 11 && h < 15) meal = '☀️ Lunch Time';
+      else if (h >= 18 && h < 22) meal = '🌙 Dinner Time';
+      else meal = '💤 No active meal';
+      document.getElementById('currentMealLabel').textContent = meal;
+    }
+
+    async function startScanner() {
+      document.getElementById('startBtn').style.display = 'none';
+      document.getElementById('stopBtn').style.display = 'flex';
+      document.getElementById('scanOverlay').style.display = 'flex';
+
+      html5QrCode = new Html5Qrcode('reader');
+      try {
+        await html5QrCode.start(
+          { facingMode: 'environment' },
+          { fps: 10, qrbox: { width: 220, height: 220 } },
+          onScanSuccess,
+          () => {}
+        );
+        isScanning = true;
+      } catch (err) {
+        showResult('error', '❌', 'Camera Error', `Could not access camera: ${err.message}`, null);
+        document.getElementById('startBtn').style.display = 'flex';
+        document.getElementById('stopBtn').style.display = 'none';
+      }
+    }
+
+    async function stopScanner() {
+      if (html5QrCode && isScanning) {
+        await html5QrCode.stop();
+        isScanning = false;
+      }
+      document.getElementById('startBtn').style.display = 'flex';
+      document.getElementById('stopBtn').style.display = 'none';
+    }
+
+    async function onScanSuccess(qrToken) {
+      if (scanCooldown) return;
+      scanCooldown = true;
+      setTimeout(() => { scanCooldown = false; }, 3000);
+      await processToken(qrToken);
+    }
+
+    function toggleManual() {
+      document.getElementById('manualSection').classList.toggle('show');
+    }
+
+    async function submitManual() {
+      const token = document.getElementById('manualToken').value.trim();
+      if (!token) return;
+      await processToken(token);
+      document.getElementById('manualToken').value = '';
+    }
+
+    async function processToken(token) {
+      stats.total++;
+      document.getElementById('statTotal').textContent = stats.total;
+      try {
+        const data = await apiFetch('/bookings/scan', {
+          method: 'POST',
+          body: JSON.stringify({ qrToken: token })
+        });
+        stats.success++;
+        document.getElementById('statSuccess').textContent = stats.success;
+        const s = data.student;
+        const b = data.booking;
+        showResult('success', '✅', 'Meal Verified!', data.message, `
+          <div class="student-info">
+            <div class="info-row"><span class="info-label">Name</span><span class="info-value">${s?.name || '—'}</span></div>
+            <div class="info-row"><span class="info-label">Room</span><span class="info-value">${s?.roomNumber || '—'}</span></div>
+            <div class="info-row"><span class="info-label">Meal</span><span class="info-value">${b?.mealType || '—'} · ${b?.date || ''}</span></div>
+            <div class="info-row"><span class="info-label">Food</span>
+              <span class="food-pref-badge ${b?.foodPreference === 'nonveg' ? 'nonveg' : 'veg'}">
+                ${b?.foodPreference === 'nonveg' ? '🍗 Non-Veg' : '🥦 Veg'}
+              </span>
+            </div>
+          </div>
+        `);
+        playBeep(true);
+      } catch (err) {
+        stats.failed++;
+        document.getElementById('statFailed').textContent = stats.failed;
+        const isWarn = err.message.includes('Already');
+        showResult(isWarn ? 'warn' : 'error', isWarn ? '⚠️' : '❌', isWarn ? 'Already Scanned' : 'Invalid QR', err.message, null);
+        playBeep(false);
+      }
+    }
+
+    function showResult(type, icon, title, message, extraHTML) {
+      const el = document.getElementById('scanResult');
+      el.innerHTML = `
+        <div class="result-card ${type}">
+          <div class="result-icon">${icon}</div>
+          <div class="result-title ${type}">${title}</div>
+          <p style="font-size:14px;color:var(--text-muted);margin-bottom:${extraHTML ? '16px' : '0'}">${message}</p>
+          ${extraHTML || ''}
+          <div class="result-time">Scanned at ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}</div>
+        </div>
+      `;
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 8000);
+    }
+
+    function playBeep(success) {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.value = success ? 880 : 220;
+        osc.type = success ? 'sine' : 'square';
+        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.4);
+      } catch {}
+    }
+
+    // Allow Enter key in manual input
+    document.getElementById('manualToken')?.addEventListener('keydown', e => {
+      if (e.key === 'Enter') submitManual();
+    });
+  </script>
+</body>
+</html>

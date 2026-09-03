@@ -1,0 +1,20 @@
+{
+  "name": "HostelEats",
+  "short_name": "HostelEats",
+  "description": "Smart Hostel Food Management System",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f1117",
+  "theme_color": "#FF6B35",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Book Meals",  "url": "/pages/student.html#book",     "description": "Book your meals for today" },
+    { "name": "My QR Passes","url": "/pages/student.html#my-qr",    "description": "View your mess entry QR codes" },
+    { "name": "Mess Scanner","url": "/pages/scanner.html",          "description": "Scan student QR codes at mess" }
+  ],
+  "categories": ["food", "productivity", "utilities"]
+}

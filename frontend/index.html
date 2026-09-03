@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HostelEats — Food Management System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="auth-page">
+  <div class="auth-container">
+    <div class="auth-left">
+      <div class="brand">
+        <div class="brand-icon">🍱</div>
+        <h1 class="brand-name">HostelEats</h1>
+        <p class="brand-tagline">Smart Food Management for Modern Hostels</p>
+      </div>
+      <ul class="feature-list">
+        <li><span class="feat-icon">📅</span> Book meals with veg &amp; non-veg options</li>
+        <li><span class="feat-icon">📱</span> QR passes for mess entry scanning</li>
+        <li><span class="feat-icon">📊</span> Real-time meal count &amp; attendance</li>
+        <li><span class="feat-icon">📧</span> Email notifications when menu is published</li>
+        <li><span class="feat-icon">📥</span> Export Excel reports for admin</li>
+        <li><span class="feat-icon">⭐</span> Rate &amp; review your meals</li>
+      </ul>
+    </div>
+
+    <div class="auth-right">
+      <div class="auth-card">
+        <div class="tab-switcher">
+          <button class="tab-btn active" onclick="switchTab('login')">Sign In</button>
+          <button class="tab-btn" onclick="switchTab('register')">Register</button>
+        </div>
+
+        <!-- Login -->
+        <form id="loginForm" class="auth-form active" onsubmit="handleLogin(event)">
+          <h2>Welcome back</h2>
+          <p class="form-sub">Sign in to your account</p>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="loginEmail" placeholder="you@hostel.edu" required />
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="loginPassword" placeholder="••••••••" required />
+          </div>
+          <div id="loginError" class="alert alert-error hidden"></div>
+          <button type="submit" class="btn-primary" id="loginBtn"><span>Sign In</span></button>
+          <p class="demo-hint">Demo admin: <strong>admin@hostel.com</strong> / admin123<br/>Demo student: <strong>student@hostel.com</strong> / student123</p>
+        </form>
+
+        <!-- Register -->
+        <form id="registerForm" class="auth-form" onsubmit="handleRegister(event)">
+          <h2>Create account</h2>
+          <p class="form-sub">Join the hostel food system</p>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Full Name</label>
+              <input type="text" id="regName" placeholder="Your name" required />
+            </div>
+            <div class="form-group">
+              <label>Room No.</label>
+              <input type="text" id="regRoom" placeholder="A-101" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="regEmail" placeholder="you@hostel.edu" required />
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="regPassword" placeholder="Min 6 characters" required minlength="6" />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Role</label>
+              <select id="regRole" onchange="toggleAdminCode()">
+                <option value="student">Student</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Food Preference</label>
+              <select id="regFoodPref">
+                <option value="veg">🥦 Veg</option>
+                <option value="nonveg">🍗 Non-Veg</option>
+                <option value="both">🍱 Both</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group hidden" id="adminCodeGroup">
+            <label>Admin Code</label>
+            <input type="password" id="adminCode" placeholder="Enter admin access code" />
+          </div>
+          <div id="registerError" class="alert alert-error hidden"></div>
+          <div id="registerSuccess" class="alert alert-success hidden"></div>
+          <button type="submit" class="btn-primary" id="registerBtn"><span>Create Account</span></button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+</body>
+</html>

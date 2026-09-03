@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Dashboard — HostelEats</title>
+  <link rel="manifest" href="/manifest.json"/>
+  <meta name="theme-color" content="#FF6B35"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <link rel="stylesheet" href="../css/dashboard.css"/>
+</head>
+<body class="dashboard-page">
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand"><span>🍱</span><span class="brand-text">HostelEats</span></div>
+  <nav class="sidebar-nav">
+    <a href="#" class="nav-item active" data-page="overview"><span class="nav-icon">🏠</span><span>Overview</span></a>
+    <a href="#" class="nav-item" data-page="menu"><span class="nav-icon">📋</span><span>Weekly Menu</span></a>
+    <a href="#" class="nav-item" data-page="book"><span class="nav-icon">🍽️</span><span>Book Meals</span></a>
+    <a href="#" class="nav-item" data-page="my-bookings"><span class="nav-icon">📅</span><span>My Bookings</span></a>
+    <a href="#" class="nav-item" data-page="my-qr"><span class="nav-icon">📱</span><span>My QR Passes</span></a>
+    <a href="#" class="nav-item" data-page="analytics"><span class="nav-icon">📈</span><span>My Analytics</span></a>
+    <a href="#" class="nav-item" data-page="feedback"><span class="nav-icon">⭐</span><span>Feedback</span></a>
+    <a href="#" class="nav-item" data-page="settings"><span class="nav-icon">⚙️</span><span>Settings</span></a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-info">
+      <div class="user-avatar" id="sidebarAvatar">S</div>
+      <div><div class="user-name" id="sidebarName">Student</div><div class="user-role" id="sidebarPref">Veg</div></div>
+    </div>
+    <button class="logout-btn" onclick="logout()">↩ Logout</button>
+  </div>
+</aside>
+
+<main class="main-content">
+  <header class="top-bar">
+    <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+    <div class="page-title" id="pageTitle">Overview</div>
+    <div class="date-display" id="currentDate"></div>
+  </header>
+
+  <!-- Overview -->
+  <section class="page active" id="page-overview">
+    <div class="welcome-banner">
+      <div><h2 id="welcomeMsg">Good morning! 👋</h2><p>Here's what's on today's menu</p></div>
+      <div class="today-date-badge" id="todayBadge"></div>
+    </div>
+    <div class="today-menu-cards" id="todayMenuCards"><div class="loading-state">Loading...</div></div>
+    <div class="quick-actions"><h3>Quick Actions</h3>
+      <div class="action-grid">
+        <button class="action-card" onclick="goToPage('book');loadPageData('book')"><span class="action-icon">🍽️</span><span>Book a Meal</span></button>
+        <button class="action-card" onclick="goToPage('my-qr');loadPageData('my-qr')"><span class="action-icon">📱</span><span>My QR Passes</span></button>
+        <button class="action-card" onclick="goToPage('analytics');loadPageData('analytics')"><span class="action-icon">📈</span><span>My Analytics</span></button>
+        <button class="action-card" onclick="goToPage('feedback');loadPageData('feedback')"><span class="action-icon">⭐</span><span>Feedback</span></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Weekly Menu -->
+  <section class="page" id="page-menu">
+    <div class="page-header"><h2>Weekly Menu</h2>
+      <div class="week-nav">
+        <button onclick="changeWeek(-1)">← Prev</button>
+        <span id="weekLabel"></span>
+        <button onclick="changeWeek(1)">Next →</button>
+      </div>
+    </div>
+    <div class="menu-grid" id="menuGrid"><div class="loading-state">Loading...</div></div>
+  </section>
+
+  <!-- Book Meals -->
+  <section class="page" id="page-book">
+    <div class="page-header"><h2>Book Your Meals</h2></div>
+    <div class="booking-container">
+      <div class="booking-form-card">
+        <div class="form-group"><label>Select Date</label><input type="date" id="bookDate"/></div>
+        <div class="form-group"><label>Food Preference</label>
+          <div class="pref-toggle" id="prefToggle">
+            <button class="pref-btn active" data-pref="veg"    onclick="setPref('veg')">🥦 Veg</button>
+            <button class="pref-btn"        data-pref="nonveg" onclick="setPref('nonveg')">🍗 Non-Veg</button>
+            <button class="pref-btn"        data-pref="both"   onclick="setPref('both')">🍱 Both</button>
+          </div>
+          <input type="hidden" id="foodPref" value="veg"/>
+        </div>
+        <div class="meal-selector"><h4>Select Meals</h4>
+          <div class="meal-options">
+            <label class="meal-option"><input type="checkbox" value="breakfast"/>
+              <span class="meal-label"><span class="meal-emoji">🌅</span><span>Breakfast</span><span class="meal-time">7–9 AM</span><span class="deadline-tag" id="dl-breakfast"></span></span></label>
+            <label class="meal-option"><input type="checkbox" value="lunch"/>
+              <span class="meal-label"><span class="meal-emoji">☀️</span><span>Lunch</span><span class="meal-time">12–2 PM</span><span class="deadline-tag" id="dl-lunch"></span></span></label>
+            <label class="meal-option"><input type="checkbox" value="snacks"/>
+              <span class="meal-label"><span class="meal-emoji">🍪</span><span>Snacks</span><span class="meal-time">4–5 PM</span><span class="deadline-tag" id="dl-snacks"></span></span></label>
+            <label class="meal-option"><input type="checkbox" value="dinner"/>
+              <span class="meal-label"><span class="meal-emoji">🌙</span><span>Dinner</span><span class="meal-time">7–9 PM</span><span class="deadline-tag" id="dl-dinner"></span></span></label>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="submitBooking()"><span>Confirm Booking</span></button>
+      </div>
+      <div class="booking-preview"><h4>Menu Preview</h4><div id="bookPreviewContent"><p style="color:var(--text-muted);font-size:13px">Select a date to see the menu</p></div></div>
+    </div>
+    <!-- QR Modal -->
+    <div class="qr-success-modal hidden" id="qrSuccessModal">
+      <div class="qr-modal-card">
+        <div class="qr-modal-header"><span class="qr-modal-icon">✅</span><h3>Meal Booked!</h3><p id="qrModalDesc"></p></div>
+        <div id="qrCodesContainer"></div>
+        <button class="btn-secondary" style="width:100%;margin-top:16px" onclick="closeQrModal()">Close</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- My Bookings -->
+  <section class="page" id="page-my-bookings">
+    <div class="page-header"><h2>My Bookings</h2>
+      <div class="filter-row">
+        <input type="date" id="bookingFilterStart"/><span>to</span>
+        <input type="date" id="bookingFilterEnd"/>
+        <button class="btn-secondary" onclick="loadMyBookings()">Filter</button>
+      </div>
+    </div>
+    <div id="myBookingsTable"><div class="loading-state">Loading...</div></div>
+  </section>
+
+  <!-- QR Passes -->
+  <section class="page" id="page-my-qr">
+    <div class="page-header"><h2>My QR Passes</h2><p style="color:var(--text-muted);font-size:13px;margin-top:4px">Show at mess entrance to enter</p></div>
+    <div class="filter-row" style="margin-bottom:20px"><input type="date" id="qrFilterDate"/><button class="btn-secondary" onclick="loadQrPasses()">View</button></div>
+    <div id="qrPassesGrid" class="qr-passes-grid"><div class="loading-state">Select a date.</div></div>
+  </section>
+
+  <!-- Analytics -->
+  <section class="page" id="page-analytics">
+    <div class="page-header"><h2>My Meal Analytics</h2>
+      <div class="filter-row">
+        <select id="analyticsMonth" onchange="loadAnalytics()"></select>
+      </div>
+    </div>
+    <div id="analyticsView"><div class="loading-state">Loading analytics...</div></div>
+  </section>
+
+  <!-- Feedback -->
+  <section class="page" id="page-feedback">
+    <div class="page-header"><h2>Meal Feedback</h2></div>
+    <div class="feedback-container">
+      <div class="feedback-form-card">
+        <h3>Submit Feedback</h3>
+        <div class="form-group"><label>Date</label><input type="date" id="feedbackDate"/></div>
+        <div class="form-group"><label>Meal</label>
+          <select id="feedbackMeal">
+            <option value="breakfast">🌅 Breakfast</option>
+            <option value="lunch">☀️ Lunch</option>
+            <option value="snacks">🍪 Snacks</option>
+            <option value="dinner">🌙 Dinner</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Rating</label>
+          <div class="star-rating" id="starRating">
+            <span data-val="1">★</span><span data-val="2">★</span><span data-val="3">★</span><span data-val="4">★</span><span data-val="5">★</span>
+          </div>
+          <input type="hidden" id="ratingValue" value="0"/>
+        </div>
+        <div class="form-group"><label>Comment (optional)</label><textarea id="feedbackComment" rows="3" placeholder="Share your thoughts..."></textarea></div>
+        <button class="btn-primary" onclick="submitFeedback()"><span>Submit Feedback</span></button>
+      </div>
+      <div class="feedback-history"><h3>Your Feedback History</h3><div id="feedbackList"><div class="loading-state">Loading...</div></div></div>
+    </div>
+  </section>
+
+  <!-- Settings -->
+  <section class="page" id="page-settings">
+    <div class="page-header"><h2>Settings</h2></div>
+    <div id="settingsView"><div class="loading-state">Loading settings...</div></div>
+  </section>
+</main>
+
+<script src="../js/api.js"></script>
+<script src="../js/student.js"></script>
+<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js');</script>
+</body>
+</html>
